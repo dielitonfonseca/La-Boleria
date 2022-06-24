@@ -25,7 +25,6 @@ async function getAll() {
 	try {
 		const queryString = `
 		select
-			json_build_object('id',c.id,'name',c.name,'address',c.address,'phone',c.phone) as client,
 			json_build_object('id',ca.id,'name',ca.name,'price',ca.price,'description', ca.description, 'image',ca.image) as cake,
 			orders."createdAt",
 			orders.quantity,
@@ -80,7 +79,6 @@ async function getAllByDate(date) {
 		throw e;
 	}
 }
-
 async function getById(id) {
 	try {
 		const queryString = `
@@ -109,9 +107,39 @@ async function getById(id) {
 		throw e;
 	}
 }
+async function getByUser(userId) {
+	try {
+		const queryString = `
+		select
+			orders.id as "orderId",
+			orders.quantity,
+			orders."createdAt",
+			orders."totalPrice",
+			ca.name as "cakeName"
+		from
+        	"orders"
+		join "clients" c 
+			on  orders."clientId" =c.id 
+		join "cakes" ca
+			on orders."cakeId" = ca.id
+		where 
+			c.id =($1)
+		;
+		`;
+		const queryArgs = [userId];
+
+		const result = await db.query(queryString, queryArgs);
+		return result;
+	} catch (e) {
+		console.log(e);
+		throw e;
+	}
+}
+
 export const ordersRepository = {
 	insert,
 	getAll,
 	getAllByDate,
 	getById,
+	getByUser,
 };
